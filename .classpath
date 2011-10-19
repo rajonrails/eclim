@@ -2,6 +2,7 @@
 <classpath>
   <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
   <classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+  <classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
   <classpathentry kind="lib" path="ant/lib/eclim-checkstyle.jar"/>
   <classpathentry kind="lib" path="ant/lib/junit-4.9.jar"/>
   <classpathentry kind="lib" path="ant/lib/testng-5.1-jdk15.jar"/>
@@ -79,6 +80,9 @@
   <classpathentry kind="var" path="ECLIPSE_HOME/plugins/org.eclipse.wst.sse.core_1.1.601.v201108151912.jar"/>
   <classpathentry kind="var" path="ECLIPSE_HOME/plugins/org.eclipse.wst.sse.ui_1.3.1.v201108191312.jar"/>
   <classpathentry kind="var" path="ECLIPSE_HOME/plugins/org.eclipse.xsd_2.7.0.v20110606-0949.jar"/>
+  <classpathentry kind="var" path="ECLIPSE_HOME/plugins/org.scala-ide.scala.library_2.9.2.r25743-b20110928032420.jar"/>
+  <classpathentry kind="var" path="ECLIPSE_HOME/plugins/org.scala-ide.sdt.aspects_2.0.0.beta11-2_09-201110031011-3a97f5e.jar"/>
+  <classpathentry kind="var" path="ECLIPSE_HOME/plugins/org.scala-ide.sdt.core_2.0.0.beta11-2_09-201110031011-3a97f5e.jar"/>
   <classpathentry kind="var" path="FORMIC_HOME/lib/ant-1.8.2.jar"/>
   <classpathentry kind="var" path="FORMIC_HOME/lib/foxtrot-3.0.jar"/>
   <classpathentry kind="var" path="FORMIC_HOME/lib/looks-2.1.4.jar"/>
@@ -97,6 +101,8 @@
   <classpathentry kind="src" path="org.eclim.jdt/test/junit"/>
   <classpathentry kind="src" path="org.eclim.pdt/java"/>
   <classpathentry kind="src" path="org.eclim.pdt/test/junit"/>
+  <classpathentry kind="src" path="org.eclim.sdt/java"/>
+  <classpathentry kind="src" path="org.eclim.sdt/test/junit"/>
   <classpathentry kind="src" path="org.eclim.vimplugin/java"/>
   <classpathentry kind="src" path="org.eclim.wst/java" excluding="org/ccil/**"/>
   <classpathentry kind="src" path="org.eclim.wst/test/junit"/>

@@ -72,6 +72,14 @@ target(name: 'init'){
     ))
   }
 
+  // extract scala jars for scala support
+  unjar(dest: 'build/temp/lib/scala'){
+    fileset(dir: '${eclipse}'){
+      include(name: 'dropins/**/plugins/org.scala-ide.scala.*.jar')
+      include(name: 'plugins/org.scala-ide.scala.*.jar')
+    }
+  }
+
   path(id: 'classpath'){
     fileset(dir: '.', includes: '**/lib/*.jar')
     fileset(dir: '${eclipse}'){
@@ -87,6 +95,14 @@ target(name: 'init'){
     // for gentoo
     fileset(dir: '/usr/share/', erroronmissingdir: false,
       includes: 'swt-*/lib/*.jar')
+    // for scala
+    fileset(dir: '${eclipse}'){
+      include(name: 'dropins/**/plugins/org.scala-ide.*.jar')
+      include(name: 'plugins/org.scala-ide.*.jar')
+    }
+    fileset(dir: 'build/temp/lib', erroronmissingdir: false){
+      include(name: '**/scala-*.jar')
+    }
   }
 }
 

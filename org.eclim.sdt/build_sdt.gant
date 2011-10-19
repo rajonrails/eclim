@@ -1,0 +1,8 @@
+feature_sdt = 'org.scala-ide.sdt.feature'
+
+target(name: 'org.eclim.sdt.test'){
+  depends('test.init')
+  runTests('org.eclim.sdt'){
+    createProject('org.eclim.sdt', 'eclim_unit_test_scala')
+  }
+}
