@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005 - 2011  Eric Van Dewoestine
+ * Copyright (C) 2005 - 2012  Eric Van Dewoestine
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,6 @@ import org.eclim.plugin.core.command.AbstractCommand;
 import org.eclim.plugin.core.util.ProjectUtils;
 
 import org.eclim.util.IOUtils;
-import org.eclim.util.StringUtils;
 
 import org.eclim.util.file.FileUtils;
 
@@ -67,7 +66,8 @@ import com.wcohen.ss.api.StringDistance;
     "REQUIRED p pattern ARG," +
     "REQUIRED s scope ARG," +
     "OPTIONAL n project ARG," +
-    "OPTIONAL f file ARG"
+    "OPTIONAL f file ARG," +
+    "OPTIONAL i case_insensitive NOARG"
 )
 public class LocateFileCommand
   extends AbstractCommand
@@ -108,7 +108,11 @@ public class LocateFileCommand
     BufferedReader reader = null;
     try{
       reader = new BufferedReader(new FileReader(fileName));
-      Matcher matcher = Pattern.compile(pattern).matcher("");
+      int flags = 0;
+      if (commandLine.hasOption(Options.CASE_INSENSITIVE_OPTION)){
+        flags = Pattern.CASE_INSENSITIVE;
+      }
+      Matcher matcher = Pattern.compile(pattern, flags).matcher("");
       String line = null;
       while ((line = reader.readLine()) != null){
         if (matcher.reset(line).find()){
@@ -149,7 +153,8 @@ public class LocateFileCommand
       }
     }
 
-    FileMatcher matcher = new FileMatcher(pattern);
+    FileMatcher matcher = new FileMatcher(
+        pattern, commandLine.hasOption(Options.CASE_INSENSITIVE_OPTION));
     for (IProject resource : projects){
       resource.accept(matcher, 0);
     }
@@ -157,7 +162,7 @@ public class LocateFileCommand
     return matcher.getResults();
   }
 
-  private static class Result
+  public static class Result
   {
     public String name;
     public String path;
@@ -223,9 +228,13 @@ public class LocateFileCommand
      *
      * @param pattern The pattern for this instance.
      */
-    public FileMatcher (String pattern)
+    public FileMatcher (String pattern, boolean ignoreCase)
     {
-      this.matcher = Pattern.compile(pattern).matcher("");
+      int flags = 0;
+      if (ignoreCase){
+        flags = Pattern.CASE_INSENSITIVE;
+      }
+      this.matcher = Pattern.compile(pattern, flags).matcher("");
 
       Matcher baseMatcher = FIND_BASE.matcher(pattern);
       if (baseMatcher.find()){
@@ -275,7 +284,7 @@ public class LocateFileCommand
         if (resource == null){
           resource = proxy.requestResource();
         }
-        IPath raw = resource.getRawLocation();
+        IPath raw = resource.getLocation();
         if (raw != null){
           String rel = resource.getFullPath().toOSString().replace('\\', '/');
           String path = raw.toOSString().replace('\\', '/');

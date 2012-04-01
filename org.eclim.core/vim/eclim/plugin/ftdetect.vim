@@ -34,14 +34,14 @@ function! EclimSetXmlFileType(map)
     endif
 
     if has_key(a:map, b:xmlroot)
-      exec "set filetype=" . a:map[b:xmlroot]
       let b:eclim_xml_filetype = a:map[b:xmlroot]
+      let &filetype = b:eclim_xml_filetype
     endif
 
   " occurs when re-opening an existing buffer.
   elseif &ft != b:eclim_xml_filetype
     if has_key(a:map, b:xmlroot)
-      exec "set filetype=" . a:map[b:xmlroot]
+      let &filetype = a:map[b:xmlroot]
     endif
   endif
 endfunction " }}}
@@ -49,8 +49,10 @@ endfunction " }}}
 " GetRootElement() {{{
 " Get the root element name.
 function! s:GetRootElement()
-  " handle case where file doesn't have the xml declaration
-  set filetype=xml
+  " handle case where file doesn't have xml an extension or an xml declaration
+  if expand('%:e') != 'xml' && getline(1) !~ '<?\s*xml.*?>'
+    set filetype=xml
+  endif
 
   let root = ''
   let element = '.\{-}<\([a-zA-Z].\{-}\)\(\s\|>\|$\).*'
@@ -88,7 +90,6 @@ function! s:GetRootElement()
       let line = line . getline(linenum)
 
       let root = substitute(line, '.*DOCTYPE\s\+\(.\{-}\)\s\+.*', '\1', '')
-      echom " root from doctype = " . root
 
       return root != line ? root : ''
     endif

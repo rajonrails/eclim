@@ -4,7 +4,7 @@
 "
 " License:
 "
-" Copyright (C) 2005 - 2011  Eric Van Dewoestine
+" Copyright (C) 2005 - 2012  Eric Van Dewoestine
 "
 " This program is free software: you can redistribute it and/or modify
 " it under the terms of the GNU General Public License as published by
@@ -39,8 +39,18 @@ endif
 
 " Options {{{
 
-let b:endwise_addition = '{% end& %}'
-let b:endwise_words = 'block,if,while,for'
+if exists('b:jinja_line_statement_prefix')
+  " the }\<bs> is a gross hack to force reindenting of auto added closing line
+  " block statement since otherwise auto indent isn't evaluated after
+  " inserting it.
+  let b:endwise_addition =
+    \ '\=getline(line(".") - 1)=~"^\\s*' . b:jinja_line_statement_prefix . '" ? '.
+    \ '"' . b:jinja_line_statement_prefix . ' end" . submatch(0) . "}\<bs>" : ' .
+    \ '"{% end" . submatch(0) . " %}"'
+else
+  let b:endwise_addition = '{% end& %}'
+endif
+let b:endwise_words = 'block,call,if,while,filter,for,macro'
 let b:endwise_syngroups = 'jinjaStatement'
 
 " }}}
@@ -69,6 +79,11 @@ if exists("b:match_words")
     endfor
     let pattern .= ':{%-\?\s*\<' . element[-1:][0] . '\>\s*-\?%}'
     let b:match_words .= ',' . pattern
+    if exists('b:jinja_line_statement_prefix')
+      let pattern = substitute(pattern, '{%-\\?', b:jinja_line_statement_prefix, 'g')
+      let pattern = substitute(pattern, '-\\?%}', '', 'g')
+      let b:match_words .= ',' . pattern
+    endif
   endfor
 endif
 

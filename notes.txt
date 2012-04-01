@@ -2,53 +2,32 @@ HIGH {{{
   Bugs:
     - figure out why eclimd affects the eclipse workspace selector
 
-    - better :Vcs* error handling
-
-    - better error message attempting to create a project in a project (only an
-      issue inside of the workspace directory)
-      http://groups.google.com/group/eclim-user/browse_thread/thread/10e3f5a17452cfc2?hl=en.
-
-    - deadlock:
-      Jobs Running at the time:
-        Building workspace(6)                   - running
-        Flushing content description cache.(13) - waiting
-        Compacting resource model(14)           - running
-        Periodic workspace save.(8)             - sleeping
-
-    - workspace corruption
-
-  Docs:
-    - document vertical tool window vars
-
-    - add high level docs or screencast
-
-  Tasks:
-    - Check if additional css properties are provided by eclipse or added by
-      aptana (-moz-border-radius)
-
-    - test installing as root on karmic 9.10
-      - user reports that when installing android on apt-get installed eclipse
-        and then installing eclim as root, the android functionality disappeared
-        even though eclipse still listed it as installed.
-
   Features:
-    - :LocateFile
-      - add eclipse setting to filter out results (supported in helios?)
+    - Remote eclimd
+      - mount point for code/workspace location
+      - ~/.eclimrc (both sides need to agree)
+      - ~/.eclim/.eclimd_instances (client needs to read server created file)
 
-    - Support for starting/stopping eclim from vim
-      - fork eclimd
-      - buffer to tail the eclimd log
-
-    - Auto code completion
-      - using python to spawn completion in the background
-
-    - html/xml validate (cache dtd)
-
-    - signature + docs (python docstrings, javadocs, etc.) of a method while you
-      type.
+    - signature + docs (python docstrings, javadocs, etc.) of a method, class,
+      etc. (suggest default insert keybinding to get this essentially while typing)
       - open a scratch window for displaying these
 
-    - make project file refresh async?
+  Tasks:
+    - Breakout more vim plugins:
+      - buffers  (common/buffers.vim)
+        - test internationalized :buffers output
+        - add refresh shortcut
+        - on delete, refresh
+        - range delete + open
+      - :Jps
+      - django/jinja end tag completion?
+      - maven support
+
+      Create ability to package up other plugins in the rtp when building the
+      eclim installer, then break out these (use git submodules so that this
+      comes for free, for me and others checking out the source?):
+        - tree (TreeTab, etc.)
+        - sign support?
 }}}
 
 TODO {{{
@@ -63,57 +42,14 @@ TODO {{{
       <!DOCTYPE project [
         <!ENTITY userlist SYSTEM "file:include/cvs-user-list.xml">
       ]>
-
-    - Ubuntu Hardy (command completion may cause segfault)
-      - https://bugs.launchpad.net/ubuntu/+source/vim/+bug/219546
-
-    - vrapper patch to prevent error when vimplugin editor is opened.
-      - http://sourceforge.net/apps/trac/vrapper/ticket/30
-
-    - does this affect eclim as well (nailgun + utf8)?
-      http://mathias-biilmann.net/2009/3/clojure-repl-and-utf-8
-      I don't think eclim sends any text that could contain utf8 characters via
-      nailgun, and no one has reported any related issues.
-      Adding -Dfile.encoding=UTF8 to .eclimrc would be an easy work around if
-      this issue did surface, but perhaps eclim should be more proactive and
-      defualt to UTF8 and allow users to override that default via the
-      file.encoding system property.
-      The default on my box seems to already be UTF8, so maybe this is a mac only
-      issue.
   }}}
 
   Tests {{{
-    - taglist
-      - ant
-      - javascript
-      - sql
-      - properties
-      - log4j
-      - webxml
-      - php
-    - line based matching via :JavaRegex and :PythonRegex
     - util classes and vim util functions
     - project nature add/remove
     - logger (custom logger)
     - indenting test cases
     - html validate: validation of nested javascript and css
-    - various common vim commands
-      - :OtherWorkingCopyDiff
-      - :OtherWorkingCopyEdit
-      - :OtherWorkingCopySplit
-      - :OtherWorkingCopyTabopen
-      - :Sign
-      - :Signs
-      - :SignClearUser
-      - :SignClearAll
-      - :QuickFixClear
-      - :LocationListClear
-      - :VimgrepRelative
-      - :VimgrepAddRelative
-      - :LvimgrepRelative
-      - :LvimgrepAddRelative
-      - :CdRelative
-      - :LcdRelative
     - django functionality
     - :EclimHelp, :EclimHelpGrep
     - :Jps
@@ -121,75 +57,33 @@ TODO {{{
   }}}
 
   Installer {{{
-    - add/test proxy support to the installer
-      - new p2 provisioning system may handle this transparently
+    - Update unattended install to auto install plugins based on available
+      eclipse features, unless explicitly disabled by the user.
 
     - detect gnome / kde and add installer step to auto start eclimd
 
     - installer validation
       - java version
-
-    - look into libarchive for bsd support.
-
-    - consider adding command line option to installer to specify temp dir to write to
-      - or maybe just use ~/.tmp
-
-    - test installer w/ eclipse running
-      - may cause issues, if so, attempt to detect if eclipse is running and
-        display an intermediate step (or add to requirements steps as warning)
-        alerting the user to shut it down.
   }}}
 
   Documentation {{{
     - add menu of some sort in vimdocs
     - consider a command to open topic in web docs
-
-    - document python import functionality
-
-    - document template plugin
-
-    - document qf/location list filtering support
-
-    - consider moving eclim site to github pages:
-      - http://pages.github.com/
-      - requires paid account to point eclim.org at it.
-      - doesn't yet have .htaccess support
-      - downloads?
-        - github stability + storage quotas
-
-    - meta tags in docs
-      - http://docutils.sourceforge.net/docs/ref/rst/directives.html#meta
   }}}
 
   Common {{{
+    - leverage eclipse save actions
+
     - settings export/import
 
     - :LocateFile
       - add 'recent' scope to search recently used files?
         - need to keep track of n recently used files
-
-    - templating system (convert to groovy)?
-
-    - support max number of cache entries
-      - len(split(globpath(g:EclimCacheDir, '*.cache*'), '\n'))
-      - exclude entries beginning w/ 'eclim_'
-      - maybe let the eclim server side manage this via a TimerTask.
-        - or use a expand / retract ratio so vim wouldn't be constantly deleting files.
+      - Filtering:
+        - Eclipse -> Project -> Properties -> Resource -> Resource Filters
+        - add ability to configure the eclipse resource filters
 
     - :ProjectCreateWizard - use input()
-
-    - Vcs
-      - support :VcsAnnotate, :VcsDiff prev, etc on a temp vcs file view
-      - :VcsStatus
-        - temp window w/ list of files
-        - A to add a file, R to remove one
-        - hitting <enter> on a file with:
-          - M shows the diff
-          - A opens the file
-          - D open last revision
-      - :VcsOut / :VcsIn
-         - git log --pretty=tformat:"%h|%cn|%cr|%s" origin..  // in: ..origin
-         - hg out -q --template "{node|short}|{author}|{date|age}|{desc|firstline}\n"
 
     - eclim console log
       - https://sourceforge.net/tracker/?func=detail&aid=2027557&group_id=145869&atid=763326
@@ -204,36 +98,33 @@ TODO {{{
       directory doesn't work (Eclipse doesn't support this).
       :ProjectCreate ~/workspace/my_project_dir -p my_project
 
-    - Eclipse 3.3
-      - code completion for eclipse plugin.xml and MANIFEST.MF
-
-    - determines the user's default workspace using (account for ~/.eclipse/org.eclipse.../configuration)
+    - determines the user's default workspace using (account for
+      ~/.eclipse/org.eclipse.../configuration)
       eclipse/configuration/.settings/org.eclipse.ui.ide.prefs
       RECENT_WORKSPACES=/home/ervandew/test_workspace,/home/ervandew/workspace
-
-    - for taglist, support universal marker tag:
-      |-- marker_name --|
 
     - In addition to marking lines w/ errors/warnings, highlight the offending text.
     - CursorHold validation of files.
       - via temp file?
 
-    - implement means to highlight text and push it to the command prompt
-      Ctrl-: or something similar.
+    - Auto code completion
+      - using python to spawn completion in the background
+
+    - Support for starting/stopping eclim from vim
+      - fork eclimd
+      - buffer to tail the eclimd log
   }}}
 
   Vimplugin {{{
-
     - toggle between using embedded gvim and standard eclipse editor
       - can we swap editors on the existing tab?
-
   }}}
 
   C/C++ {{{
     - cdt
       - project create
-        - handle dependant projects
-        - specify toolchain
+        - handle dependent projects
+        - specify toolchain (command to list toolchains with a configuration)
         - specify project type (executable, shared library, static library, makefile project)
         - makefile creation
       - edit project config
@@ -250,20 +141,19 @@ TODO {{{
                   CCorePlugin.getDefault().getBuildEnvironmentManager();
                 IEnvironmentVariable[] vars = mngr.getVariables(cfgDes, true);
 
+    - building c/c++ projects
+      - see org.eclipse.cdt.managedbuilder.internal.core.HeadlessBuilder
+
     - completion outside of a project
       - a user says eclipse supports this
-
-    - show function signature while typing parameters
-    - show function docs
 
     - http://www.eclipse.org/cdt/
       http://wiki.eclipse.org/index.php/CDT
       http://download.eclipse.org/tools/cdt/releases/ganymede/site.xml
       http://cdt-devel-faq.wikidot.com/
 
-    - ibm xl toolchain:
-      http://help.eclipse.org/help33/index.jsp?topic=/org.eclipse.cdt.doc.user/concepts/cdt_c_whatsnew.htm
-
+    - :CCallHierarchy support to display callees view (eclipse gui supports
+      switching between callers and callees view).
     - :CppHierarchy command which opens a buffer showing the class hierarchy for
       the current file.
     - :C[pp]IncludeHierarchy command which opens a buffer showing hierarchy of each
@@ -283,35 +173,30 @@ TODO {{{
       - missing closing }
       - font: 100%;
       - trailing , on list of selectors
+
+    - Check if additional css properties are provided by eclipse or added by
+      aptana (-moz-border-radius)
   }}}
 
   D {{{
-
     http://www.dsource.org/projects/descent
-
   }}}
 
   Erlang {{{
-
     http://erlide.org/
-
   }}}
 
   Groovy {{{
-
     - http://groovy.codehaus.org/Eclipse+Plugin
 
     - can we leverage the groovy ast to provide some simple functionality (like
       rudimentary validation)?
 
     - taglist support
-
   }}}
 
   Haskell {{{
-
     http://eclipsefp.sourceforge.net/
-
   }}}
 
   Html {{{
@@ -323,18 +208,38 @@ TODO {{{
   }}}
 
   Java {{{
+    Android {{{
+      http://s.android.com/source/index.html
+      https://android.git.kernel.org/?p=platform/sdk.git;a=tree;f=eclipse;hb=HEAD
+      $ git clone https://android.git.kernel.org/platform/sdk.git android-sdk
+      $ cd android-sdk
+      $ git co android_sdk-adt_<version>
+      $ cd eclipse/plugins/com.android.ide.eclipse.adt/src/com/android/ide/eclipse/adt
+
+      https://dl-ssl.google.com/android/eclipse/
+      com.android.ide.eclipse.adt.feature.group
+
+      Android:R cannot be resolved
+      > My solution to the /R/ nightmare is, especially when first launching
+      > a new project, to ignore any errors, go in and clean out the
+      > suppositions that Eclipse was making (specifically the almost always
+      > misguided import of /com.android.developer.R/), and basically finish
+      > the structure of my project, in particular fussing over the /.xml/
+      > files, before giving much credence to what Eclipse says.
+    }}}
+
     - refactoring
       - move compilation unit to another package
-
-    - balloon expression to mimic eclipse's hover over class, method, etc.
 
     - add, remove, set default vm install.
 
     - :Java, :Javac, :Javadoc
       - allow specific jdk/jre to be used to run the command?
 
-    - :Java, add option to 'spawn' the jvm to keep the program running while
-      returning to vim.
+    - :Java
+      - add option to 'spawn' the jvm to keep the program running while
+        returning to vim.
+      - add ability to supply jvm args, system properties, env vars, etc.
 
     - get/set, construtor, etc. templates
       - consider using the eclipse templates or giving the user that option
@@ -352,14 +257,12 @@ TODO {{{
     - generic support for java based xml config file validation
       - support list of xpaths to class name attributes / values to validate
 
-    - look into code refactoring support.
+    - refactoring support.
       - Safe deletes. Check for references before deleting.
       - Convert anonymous class into inner/outer class.
       - Convert inner class to outer class.
       - Extract interface.
-      - Method / Class / Field renaming.
       - Push methods / fields up to superclass or down to subclass.
-      - Move types, methods, fields.
       - Code "Clean Up"
         - Remove Unused Code (imports, private methods, private constructors,
           private types).
@@ -378,7 +281,8 @@ TODO {{{
 
     - :JavaImpl support anonymous classes.
 
-    - validation, look into grabbing additional message that eclipse displays that is not picked up by eclim
+    - validation, look into grabbing additional message that eclipse displays
+      that is not picked up by eclim
       - Code:
         List<String> hi = new ArrayList<String>();
         hi[0];
@@ -424,14 +328,14 @@ TODO {{{
         etc).
       - Third party plugins may provide this functionality.
 
-    - higlight instance variables differently than local variables
+    - highlight instance variables differently than local variables
 
     - content assist
       - Generate anonymous class body, including all methods that need to be
         implemented, from the start of defining one (new Runnable())
         Eclipse Equiv: Ctrl+Space
       - Create method from the call to one that does not yet exist or
-        change method signature (add/remove parameters/agruments).
+        change method signature (add/remove parameters/arguments).
         Eclipse Equiv: Ctrl+1
       - Create new field to hold constructor argument.
         Eclipse Equiv: Ctrl+1
@@ -464,7 +368,9 @@ TODO {{{
     http://www.aptana.org/ aptana (owners of radrails)
     http://www.eclipse.org/dltk/ dltk (experimental)
 
-    - :JavascriptRegex (maybe use rhino or see if eclipse has something)
+    https://www.ebayopensource.org/index.php/VJET/HomePage
+      - node.js support
+
     - javascript code completion
 
     - javascript doc lookup for common libraries
@@ -479,24 +385,6 @@ TODO {{{
       http://developer.mozilla.org/en/docs/Core_JavaScript_1.5_Reference
   }}}
 
-  Jdbc {{{
-    - dbext (http://www.vim.org/scripts/script.php?script_id=356)
-      - at a glance, seems to satify my requirements.
-
-    - Create connection profiles
-      - eclim_jdbc_profile_<name> (where to store these settings? ... .eclim/jdbc/<name>.properties)
-        - Driver Class:
-        - Driver Url:
-        - Libs (comma seperated paths to jar files):
-
-    - Support two open buffers, one for statements to execute, another for results
-      [Sql Editor]
-      [Sql Results]
-      - support some sort of query history
-
-    - Support tree with database metadata
-  }}}
-
   Jsp {{{
     jsp
       - <%%>, <%=%> code completion
@@ -506,9 +394,7 @@ TODO {{{
   }}}
 
   Lua {{{
-
     http://luaeclipse.luaforge.net/
-
   }}}
 
   Maven {{{
@@ -518,8 +404,6 @@ TODO {{{
 
   Perl {{{
     http://e-p-i-c.sourceforge.net/
-
-    - add :PerlRegex
 
     - syntax validation
       perl -c [-W or -w] <file>
@@ -535,28 +419,14 @@ TODO {{{
   }}}
 
   Php {{{
-    - add :PhpRegex
-      - will require that php is compiled with cli support.
   }}}
 
   Python {{{
-    - rope + python completion improvements to watch
-      http://groups.google.com/group/rope-dev/browse_thread/thread/f33ce5855e2fe5bf?hl=en
-
+    - move to pydev
     - look into using pyflakes fork, and possibly including it in vim like rope
       http://github.com/kevinw/pyflakes/tree/master
 
     - jython?
-
-    - rope
-      - other rope provided features
-        - organize imports
-        - fix imports
-        - get pydoc
-      - code completion enhancements
-        - self.<field> completion inside of __init__
-          - look at __init__ params
-          - look at super class self.<field> values
 
     - modify :DjangoFind to account for django provided tags and filters.
 
@@ -575,19 +445,38 @@ TODO {{{
 
   Scala {{{
     - vim files for scala
+      https://github.com/scala/scala-dist/tree/master/tool-support/src/vim
       https://lampsvn.epfl.ch/trac/scala/browser/scala-tool-support/trunk/src/vim
 
-    - http://www.scala-lang.org/node/94
-      Note: Wait on 2.8.0 to be release, since according to the developer
-      wiki[1], the code is undergoing a large refactoring.
-      [1] http://lampsvn.epfl.ch/trac/scala/wiki/EclipsePlugin
+    ch.epfl.lamp.sdt
+    org.eclipse.contribution.weaving
+    org.scala-ide.sdt.weaving.feature
+    org.scala-ide.sdt.feature
 
     <feature id="sdt">
-      <dependency id="ch.epfl.lamp.sdt" version="2.7.4">
-        <site url="http://www.scala-lang.org/scala-eclipse-plugin/"/>
+      <dependency id="org.scala-ide.sdt.weaving.feature" version="1.1.0">
+        <site url="http://download.scala-ide.org/update-current"/>
+      </dependency>
+      <dependency id="org.scala-ide.sdt.feature" version="1.1.0">
+        <site url="http://download.scala-ide.org/update-current"/>
       </dependency>
     </feature>
 
+    .classpath
+      <classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
+
+    .project
+      <buildSpec>
+        <buildCommand>
+          <name>org.scala-ide.sdt.core.scalabuilder</name>
+          <arguments>
+          </arguments>
+        </buildCommand>
+      </buildSpec>
+      <natures>
+        <nature>org.scala-ide.sdt.core.scalanature</nature>
+        <nature>org.eclipse.jdt.core.javanature</nature>
+      </natures>
   }}}
 
   SQL {{{
@@ -615,12 +504,11 @@ NOTES {{{
     2) create sourceforge release
        - update windows and linux download pages with latest file to download.
     3) update documentation website
-    4) announce on freshmeat
-       - http://freshmeat.net/projects/eclim/
+    4) announce on freecode (the site formally know as freshmeat)
+       - http://freecode.com/projects/eclim/
   }}}
 
   Eclipse Docs {{{
-
     p2
       http://wiki.eclipse.org/Equinox_p2_Getting_Started
       http://wiki.eclipse.org/Equinox_p2_Admin_UI_Users_Guide
@@ -648,22 +536,19 @@ NOTES {{{
         ./eclipse -nosplash -consolelog
           -application org.eclipse.update.core.standaloneUpdate
           -command listFeatures
-
   }}}
 
   Adding a new plugin {{{
-    Installer:
+    Installer: (integrate these into $ ant plugin.create)
       install.properties: add the following keys
         - featureList.<plugin>
         - featureList.<plugin>.html
       dependencies.properties: add feature dependencies
       FeatureProvider: add feature name, etc to constants
       EclipsePluginStep: add feature to FeatureNameComparator
-      excludes: add <plugin>.excludes file
   }}}
 
   Troubleshooting {{{
-
     Windows:
       - starting eclim without spawning separate console
         > java -Dnailgun.server.port=9092
@@ -694,14 +579,14 @@ NOTES {{{
     closing a src file, complaining that the .swp file doesn't exist.  To fix this,
     you need to exclude the swp files from the eclipse build.
 
-      Project > Properties > Java Build Path
+      Project > Properties > (Java/PHP/etc) Build Path
         Expand Source folder node
         Select "Excluded"
         Hit "Edit"
         Add exclusion pattern: "**/*.swp"
     Or
-      Edit .classpath
-        Add attribute to src classpathentry
+      Edit .classpath/.buildpath
+        Add attribute to src classpathentry/buildpathentry
           excluding="**/*.swp"
         You can use '|' to delineate multiple entries
           excluding="**/*.swp|**/*.tmp"
@@ -724,7 +609,6 @@ NOTES {{{
   }}}
 
   Autostart {{{
-
     Gnome (this may work for enlightenment 17 and xfce4 as well)
       $ mkdir -p ~/.config/autostart
       $ cp $ECLIPSE_HOME/plugins/org.eclim_<version>/bin/native/linux/eclimd.desktop ~/.config/autostart
@@ -736,13 +620,15 @@ NOTES {{{
     Others
       $ vim ~/.xinitrc
       /usr/local/java/eclipse/eclimd start
-
   }}}
 
   Linux distro eclim dependency packages  {{{
-
     Fedora
       $ yum install vim eclipse-platform
+
+      # for building eclim:
+      $ yum groupinstall "Development Tools"
+      $ yum install ant
 
     Ubuntu
       # Note: installing eclipse-platform is not enough
@@ -751,10 +637,11 @@ NOTES {{{
     OSX
       $ port install vim +huge
       $ port install ctags
-
   }}}
 
   Misc {{{
+    Eclipse Color Themes:
+    http://www.eclipsecolorthemes.org/
 
     Sourceforget shell access:
     ssh -t USER,PROJECT@shell.sourceforge.net create
@@ -787,9 +674,15 @@ NOTES {{{
     $ open MacVim/build/Release/MacVim.app/
 
     JRuby nailgun source:
-    http://jruby.org/git?p=jruby.git;a=tree;f=tool/nailgun;hb=HEAD
+    https://github.com/jruby/jruby/tree/master/tool/nailgun
+  }}}
+
+  Vim Patches of note {{{
+
+    - Patch 7.3.468: QuickFixCmdPre/Post now fired for cfile, lfile, etc.
 
   }}}
+
 
 }}}
 

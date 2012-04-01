@@ -1,4 +1,4 @@
-.. Copyright (C) 2005 - 2011  Eric Van Dewoestine
+.. Copyright (C) 2005 - 2012  Eric Van Dewoestine
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,12 +18,43 @@ History of Changes
 
 .. _1.7.3:
 
-1.7.3 (2012)
+1.7.3 (Mar. 18, 2012)
 ----------------------
 
+Bug Fixes:
+  - Lots of various bug fixes.
+
+Common:
+  - Added :ref:`:ProjectBuild <:ProjectBuild>` to build the current or
+    supplied project.
+  - Updated :ref:`:ProjectProblems <:ProjectProblems>` to support optional bang
+    (`:ProjectProblems!`) to only show project errors.
+  - Updating eclipse's :ref:`local history <vim/common/history>` when writing
+    in vim is now only enabled by default when gvim is opened from the eclipse
+    gui.
+
+C/C++:
+  - Fixed project creation issue encountered on some systems.
+
 Java:
-  - Add project settings for specifying default jvm args for
+  - Added project settings for specifying default jvm args for
     :ref:`:Java <:Java>` and default args for :ref:`:Javac <:Javac>`.
+  - Code inserted by
+    :ref:`:JavaConstructor <:JavaConstructor>`,
+    :ref:`:JavaGetSet <:JavaGetSet>`,
+    :ref:`:JavaImpl <:JavaImpl>`,
+    :ref:`:JavaDelegate <:JavaDelegate>`, and
+    :ref:`:JUnitImpl <:JUnitImpl>`
+    is now formatted according to the eclipse code formatter settings
+    configured from the eclipse gui.
+
+Maven:
+  - Now when saving your pom.xml file your .classpath will be
+    :ref:`auto updated <classpath-maven-pom>` with the dependencies found in
+    your pom.xml.
+
+Php:
+  - Now handles completion from within php short tags.
 
 .. _1.7.2:
 
@@ -635,10 +666,8 @@ Vcs:
 
 Vim:
   - Added :ref:`:Only` as a configurable alternative to vim's :only command.
-  - Added :ref:`:OtherWorkingCopyDiff`,
-    :ref:`:OtherWorkingCopyEdit`,
-    :ref:`:OtherWorkingCopySplit`, and
-    :ref:`:OtherWorkingCopyTabopen`.
+  - Added :OtherWorkingCopyDiff, :OtherWorkingCopyEdit,
+    :OtherWorkingCopySplit, and :OtherWorkingCopyTabopen.
 
 .. _1.3.5:
 

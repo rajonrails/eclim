@@ -37,7 +37,7 @@ function! eclim#java#impl#Impl()
     return
   endif
 
-  call eclim#java#util#SilentUpdate()
+  call eclim#lang#SilentUpdate()
 
   let project = eclim#project#util#GetCurrentProjectName()
   let file = eclim#project#util#GetProjectRelativeFilePath()
@@ -76,10 +76,11 @@ function! eclim#java#impl#ImplWindow(command)
     call add(content, 'package ' . super.packageName . ';')
     call add(content, super.signature . ' {')
     for method in super.methods
+      let signature = split(method.signature, '\n')
       if method.implemented
-        let method.signature = '//' . method.signature
+        let signature = map(signature, '"//" . v:val')
       endif
-      call add(content, "\t" . method.signature)
+      let content += map(signature, '"\t" . v:val')
     endfor
     call add(content, '}')
   endfor
@@ -212,7 +213,7 @@ function! eclim#java#impl#ImplAdd(command, function, visual)
   let type = substitute(getline(1), '\$', '.', 'g')
   let impl_winnr = winnr()
   exec winnr . "winc w"
-  call eclim#java#util#SilentUpdate()
+  call eclim#lang#SilentUpdate()
 
   let project = eclim#project#util#GetCurrentProjectName()
   let file = eclim#project#util#GetProjectRelativeFilePath()

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005 - 2011  Eric Van Dewoestine
+ * Copyright (C) 2005 - 2012  Eric Van Dewoestine
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,16 +22,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
 import java.net.BindException;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLClassLoader;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclim.Services;
@@ -66,9 +62,6 @@ import org.eclipse.swt.widgets.EclimDisplay;
 import org.eclipse.swt.widgets.Shell;
 
 import org.eclipse.ui.PlatformUI;
-
-import org.eclipse.ui.internal.Workbench;
-import org.eclipse.ui.internal.WorkbenchWindow;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkEvent;
@@ -488,7 +481,7 @@ public abstract class AbstractEclimApplication
     File[] files = dir.listFiles(filter);
     for (File file : files) {
       if(file.isFile()){
-        results.add(file.toURL());
+        results.add(file.toURI().toURL());
       }else{
         listFileUrls(file, filter, results);
       }
@@ -572,6 +565,14 @@ public abstract class AbstractEclimApplication
     public void setContext(NGContext context)
     {
       this.context = context;
+    }
+
+    /**
+     * {@inheritDoc}
+     * @see org.eclim.command.Command#cleanup(CommandLine)
+     */
+    public void cleanup(CommandLine commandLine)
+    {
     }
   }
 }

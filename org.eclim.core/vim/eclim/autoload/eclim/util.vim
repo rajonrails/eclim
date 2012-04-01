@@ -8,7 +8,7 @@
 "
 " License:
 "
-" Copyright (C) 2005 - 2011  Eric Van Dewoestine
+" Copyright (C) 2005 - 2012  Eric Van Dewoestine
 "
 " This program is free software: you can redistribute it and/or modify
 " it under the terms of the GNU General Public License as published by
@@ -232,11 +232,34 @@ function! eclim#util#GetEncoding()
   return encoding
 endfunction " }}}
 
-" GetOffset() {{{
-" Gets the byte offset for the current cursor position.
-function! eclim#util#GetOffset()
-  let offset = line2byte(line('.')) - 1
-  let offset += col('.') - 1
+" GetOffset([line, col]) {{{
+" Gets the byte offset for the current cursor position or supplied line, col.
+function! eclim#util#GetOffset(...)
+  let lnum = a:0 > 0 ? a:000[0] : line('.')
+  let cnum = a:0 > 1 ? a:000[1] : col('.')
+  let offset = 0
+
+  " handle case where display encoding differs from the underlying file
+  " encoding
+  if &fileencoding != '' && &encoding != '' && &fileencoding != &encoding
+    let prev = lnum - 1
+    if prev > 0
+      let lineEnding = &ff == 'dos' ? "\r\n" : "\n"
+      " convert each line to the file encoding and sum their lengths
+      let offset = eval(
+        \ join(
+        \   map(
+        \     range(1, prev),
+        \     'len(iconv(getline(v:val), &encoding, &fenc) . "' . lineEnding . '")'),
+        \   '+'))
+    endif
+
+  " normal case
+  else
+    let offset = line2byte(lnum) - 1
+  endif
+
+  let offset += cnum - 1
   return offset
 endfunction " }}}
 
@@ -545,6 +568,26 @@ function! eclim#util#ListContains(list, element)
     endif
   endfor
   return 0
+endfunction " }}}
+
+" Make(bang, args) {{{
+" Executes make using the supplied arguments.
+function! eclim#util#Make(bang, args)
+  let makefile = findfile('makefile', '.;')
+  let makefile2 = findfile('Makefile', '.;')
+  if len(makefile2) > len(makefile)
+    let makefile = makefile2
+  endif
+  let cwd = getcwd()
+  let save_mlcd = g:EclimMakeLCD
+  exec 'lcd ' . fnamemodify(makefile, ':h')
+  let g:EclimMakeLCD = 0
+  try
+    call eclim#util#MakeWithCompiler('eclim_make', a:bang, a:args)
+  finally
+    exec 'lcd ' . escape(cwd, ' ')
+    let g:EclimMakeLCD = save_mlcd
+  endtry
 endfunction " }}}
 
 " MakeWithCompiler(compiler, bang, args) {{{
@@ -1014,10 +1057,6 @@ function! eclim#util#ShowCurrentError()
     " remove any new lines
     let message = substitute(message, '\n', ' ', 'g')
 
-    if len(message) > (&columns - 1)
-      let message = strpart(message, 0, &columns - 4) . '...'
-    endif
-
     call eclim#util#WideMessage('echo', message)
     let s:show_current_error_displaying = 1
   else
@@ -1186,7 +1225,8 @@ function! eclim#util#TempWindow(name, lines, ...)
   let col = 1
 
   if bufwinnr(name) == -1
-    silent! noautocmd exec "botright 10sview " . escape(a:name, ' []')
+    let height = get(options, 'height', 10)
+    silent! noautocmd exec "botright " . height . "sview " . escape(a:name, ' []')
     setlocal nowrap
     setlocal winfixheight
     setlocal noswapfile
@@ -1285,8 +1325,9 @@ function! eclim#util#WideMessage(command, message)
 
   set noruler noshowcmd
   redraw
-  if len(message) > &columns
-    let remove = len(message) - &columns
+  let vimwidth = &columns * &cmdheight
+  if len(message) > vimwidth - 1
+    let remove = len(message) - vimwidth
     let start = (len(message) / 2) - (remove / 2) - 4
     let end = start + remove + 4
     let message = substitute(message, '\%' . start . 'c.*\%' . end . 'c', '...', '')

@@ -5,7 +5,7 @@
 "
 " License:
 "
-" Copyright (C) 2005 - 2009  Eric Van Dewoestine
+" Copyright (C) 2005 - 2012  Eric Van Dewoestine
 "
 " This program is free software: you can redistribute it and/or modify
 " it under the terms of the GNU General Public License as published by
@@ -29,17 +29,23 @@ runtime indent/xml.vim
 " turn off xml validation
 augroup eclim_xml
   autocmd! BufWritePost <buffer>
-  autocmd BufWritePost <buffer> call eclim#java#ivy#UpdateClasspath()
 augroup END
+
+" Autocmds {{{
+augroup eclim_ivy
+  autocmd! BufWritePost <buffer>
+  autocmd BufWritePost <buffer> call eclim#java#maven#UpdateClasspath()
+augroup END
+" }}}
 
 " Command Declarations {{{
 if !exists(":IvyRepo")
   command -nargs=1 -complete=dir -buffer IvyRepo
-    \ :call eclim#java#ivy#SetRepo('<args>')
+    \ :call eclim#java#ant#ivy#SetRepo('<args>')
 endif
 if !exists(":IvyDependencySearch")
   command -nargs=1 -buffer IvyDependencySearch
-    \ :call eclim#java#maven#dependency#Search('<args>', 'ivy')
+    \ :call eclim#java#maven#Search('<args>', 'ivy')
 endif
 " }}}
 

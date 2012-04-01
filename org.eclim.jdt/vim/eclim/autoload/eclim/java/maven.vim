@@ -5,7 +5,7 @@
 "
 " License:
 "
-" Copyright (C) 2005 - 2011  Eric Van Dewoestine
+" Copyright (C) 2005 - 2012  Eric Van Dewoestine
 "
 " This program is free software: you can redistribute it and/or modify
 " it under the terms of the GNU General Public License as published by
@@ -23,6 +23,8 @@
 " }}}
 
 " Script Variables {{{
+  let s:update_command = '-command project_update -p "<project>" -b "<build>"'
+
   let s:command_search =
     \ '-command maven_dependency_search ' .
     \ '-p "<project>" -f "<file>" -t "<type>" -s <query>'
@@ -48,7 +50,11 @@
 
 " Search(query, type) {{{
 " Searches online maven repository.
-function! eclim#java#maven#dependency#Search(query, type)
+function! eclim#java#maven#Search(query, type)
+  if !eclim#project#util#IsCurrentFileInProject()
+    return
+  endif
+
   update
 
   let filename = substitute(expand('%:p'), '\', '/', 'g')
@@ -79,20 +85,26 @@ function! eclim#java#maven#dependency#Search(query, type)
     call add(content, "\t" . result.artifactId . ' (' . result.version . ')')
   endfor
 
-  call eclim#util#TempWindow("Dependency_Search_Results", content)
+  let window_name = "Dependency_Search_Results"
+  call eclim#util#TempWindowClear(window_name)
 
-  let b:filename = filename
-  let b:type = a:type
-  setlocal ft=dependency_search_results
-  syntax match Statement /^\w\+.*$/
-  syntax match Identifier /(.\{-})/
-  syntax match Comment /^\s*\/\/.*$/
+  if len(content)
+    call eclim#util#TempWindow(window_name, content)
 
-  nnoremap <silent> <buffer> <cr> :call <SID>AddDependency(b:type)<cr>
+    let b:filename = filename
+    let b:type = a:type
+    setlocal ft=dependency_search_results
+    syntax match Statement /^\w\+.*$/
+    syntax match Identifier /(.\{-})/
+    syntax match Comment /^\s*\/\/.*$/
+
+    nnoremap <silent> <buffer> <cr> :call <SID>AddDependency(b:type)<cr>
+  else
+    call eclim#util#Echo('No results found.')
+  endif
 endfunction " }}}
 
-" AddDependency(type) {{{
-function! s:AddDependency(type)
+function! s:AddDependency(type) " {{{
   let line = getline('.')
   if line =~ '^\s\+.*(.*)$' && line !~ '^\s*//'
     let artifact = substitute(line, '\s\+\(.*\) (.*)$', '\1', '')
@@ -116,8 +128,7 @@ function! s:AddDependency(type)
   endif
 endfunction " }}}
 
-" InsertDependency(group, artifact, vrsn) {{{
-function! s:InsertDependency(type, group, artifact, vrsn)
+function! s:InsertDependency(type, group, artifact, vrsn) " {{{
   let depend = deepcopy(s:dependency_template{a:type})
   let depend = substitute(depend, '\${groupId}', a:group, '')
   let depend = substitute(depend, '\${artifactId}', a:artifact, '')
@@ -147,6 +158,80 @@ function! s:InsertDependency(type, group, artifact, vrsn)
   call append(lnum - 1, dependency)
 
   retab
+endfunction " }}}
+
+" SetClasspathVariable(cmd variable) {{{
+function eclim#java#maven#SetClasspathVariable(cmd, variable)
+  let workspace = eclim#eclipse#ChooseWorkspace()
+  if workspace == '0'
+    return
+  endif
+
+  let command = a:cmd .
+    \ ' -Declipse.workspace=' . workspace .
+    \ ' -Dmaven.eclipse.workspace=' . workspace .
+    \ ' eclipse:add-maven-repo'
+  call eclim#util#Exec(command)
+
+  if !v:shell_error
+    " the maven command edits the eclipse preference file directly, so in
+    " order to get the value in memory without restarting eclim, we read the
+    " value out and let the server set it again.
+    let winrestore = winrestcmd()
+
+    " maven 1.x
+    if a:cmd == 'Maven'
+      let prefs = workspace . '.metadata/.plugins/org.eclipse.jdt.core/pref_store.ini'
+
+    " maven 2.x
+    else
+      let prefs = workspace . '.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.jdt.core.prefs'
+    endif
+
+    if filereadable(prefs)
+      silent exec 'sview ' . prefs
+      let line = search('org.eclipse.jdt.core.classpathVariable.' . a:variable, 'cnw')
+      if line
+        let value = substitute(getline(line), '.\{-}=\(.*\)', '\1', '')
+        call eclim#java#classpath#VariableCreate(a:variable, value)
+      endif
+
+      if substitute(bufname('%'), '\', '/', 'g') =~ prefs
+        close
+        exec winrestore
+      endif
+    endif
+  endif
+
+endfunction " }}}
+
+" UpdateClasspath() {{{
+" Updates the classpath on the server w/ the changes made to the current file.
+function! eclim#java#maven#UpdateClasspath()
+  if !eclim#project#util#IsCurrentFileInProject()
+    return
+  endif
+
+  " validate the xml first
+  if eclim#xml#validate#Validate(expand('%:p'), 0)
+    return
+  endif
+
+  let name = eclim#project#util#GetCurrentProjectName()
+  let command = s:update_command
+  let command = substitute(command, '<project>', name, '')
+  let command = substitute(command, '<build>', escape(expand('%:p'), '\'), '')
+  let result = eclim#ExecuteEclim(command)
+
+  if type(result) == g:LIST_TYPE && len(result) > 0
+    let errors = eclim#util#ParseLocationEntries(
+      \ result, g:EclimValidateSortResults)
+    call eclim#util#SetLocationList(errors, 'r')
+    call eclim#util#EchoError(
+      \ "Operation contained errors.  See location list for details (:lopen).")
+  else
+    call eclim#util#ClearLocationList()
+  endif
 endfunction " }}}
 
 " vim:ft=vim:fdm=marker

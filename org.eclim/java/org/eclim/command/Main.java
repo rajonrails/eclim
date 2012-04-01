@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005 - 2011  Eric Van Dewoestine
+ * Copyright (C) 2005 - 2012  Eric Van Dewoestine
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -97,9 +97,11 @@ public class Main
           try{
             results[0] = command.execute(commandLine);
           }catch(Exception e){
-            logger.info("Command triggered exception: " +
+            logger.debug("Command triggered exception: " +
                 Arrays.toString(context.getArgs()), e);
             e.printStackTrace(context.err);
+          }finally{
+            command.cleanup(commandLine);
           }
         }
       });

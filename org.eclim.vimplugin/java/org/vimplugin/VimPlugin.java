@@ -1,7 +1,7 @@
 /*
  * Vimplugin
  *
- * Copyright (c) 2007 - 2010 by The Vimplugin Project.
+ * Copyright (c) 2007 by The Vimplugin Project.
  *
  * Released under the GNU General Public License
  * with ABSOLUTELY NO WARRANTY.
@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
+
+import org.apache.tools.ant.taskdefs.condition.Os;
 
 import org.eclim.logging.Logger;
 
@@ -58,7 +60,7 @@ public class VimPlugin
   private static final String GVIM_FEATURE_TEST =
     "redir! > <file> | silent! <command> | quit";
   private static final String FEATURES_COMMAND_UNIX =
-    "echo 'embed:' . (v:version >= 700) . " +
+    "echo 'embed:' . (v:version >= 700 && has('gui_gtk')) . " +
         "' netbeans:' . (has('netbeans_intg')) . " +
         "' netbeansDocumentListen:' . " +
             "(v:version > 702 || (v:version == 702 && has('patch359')))";
@@ -434,6 +436,9 @@ public class VimPlugin
    */
   public String getMessage(String key, Object... args) {
     String message = messages.getString(key);
+    if (Os.isFamily(Os.FAMILY_MAC)){
+      message = message.replaceAll("\\bgvim\\b", "mvim/gvim");
+    }
     if (args != null && args.length > 0){
       return MessageFormat.format(message, args);
     }

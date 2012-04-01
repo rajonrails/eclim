@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005 - 2011  Eric Van Dewoestine
+ * Copyright (C) 2005 - 2012  Eric Van Dewoestine
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,12 +82,12 @@ public class EclipseStep
   private static final String[] WINDOWS_ECLIPSES = {
     "C:/eclipse",
     "C:/Program Files/eclipse",
+    "C:/Program Files (x86)/eclipse",
   };
 
   private static final String[] UNIX_ECLIPSES = {
     "/opt/eclipse",
     "/usr/lib/eclipse",
-    "/usr/lib/eclipse-3.3",
     "/usr/local/eclipse",
     "/usr/share/eclipse",
     SystemUtils.USER_HOME + "/eclipse",
@@ -323,10 +323,11 @@ public class EclipseStep
       String folder = (String)value;
       if(folder != null && folder.trim().length() > 0){
         File plugins = new File(FilenameUtils.concat(folder, "plugins"));
-
-        return plugins.exists() && plugins.isDirectory();
+        if (plugins.exists() && plugins.isDirectory()){
+          return EclipseUtils.findEclipseLauncherJar(folder) != null;
+        }
       }
-      return true;
+      return false;
     }
 
     public String getErrorMessage()
@@ -424,6 +425,8 @@ public class EclipseStep
   private class InitializeAction
     extends AbstractAction
   {
+    private static final long serialVersionUID = 1L;
+
     private JTextField eclipseHomeField;
     private JTextField eclipseLocalField;
 

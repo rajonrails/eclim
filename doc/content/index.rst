@@ -1,4 +1,4 @@
-.. Copyright (C) 2005 - 2011  Eric Van Dewoestine
+.. Copyright (C) 2005 - 2012  Eric Van Dewoestine
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -82,7 +82,8 @@ leveraged in three primary ways, as illustrated below.
    eclipse interface full time, but want to use gvim as an embedded eclipse
    editor. Just like the previous use case, the eclim server is run inside of
    the eclipse gui and the embedded gvim will interact with it just like
-   external vim instances would.
+   external vim instances would. This feature is only support on Windows and
+   Unix systems (where gvim is compiled with the gtk gui).
 
 ==================
 Emacs Users
@@ -103,6 +104,21 @@ Eclim is released under the GPLv3_.
 ==================
 News
 ==================
+
+-----------
+2012-03-18
+-----------
+
+| :ref:`Eclim 1.7.3 <1.7.3>` is now available.
+| This version fixes numerious small bugs and adds a handful of small features.
+
+.. warning::
+
+   Non vim users (emacs-eclim, subclim, etc.): The underlying command response
+   format for eclim has changed, which means that any project relying on the
+   old format isn't going to work. So if you are installing eclim for use with
+   a client other than vim, then be sure to check with the client project to
+   see if it has been updated for eclim 1.7.3 or later.
 
 -----------
 2011-09-10

@@ -4,7 +4,7 @@
 "
 " License:
 "
-" Copyright (C) 2005 - 2011  Eric Van Dewoestine
+" Copyright (C) 2005 - 2012  Eric Van Dewoestine
 "
 " This program is free software: you can redistribute it and/or modify
 " it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@ let s:command_move = '-command project_move -p "<project>" -d "<dir>"'
 let s:command_refresh = '-command project_refresh -p "<project>"'
 let s:command_refresh_file =
   \ '-command project_refresh_file -p "<project>" -f "<file>"'
+let s:command_build = '-command project_build -p "<project>"'
 let s:command_projects = '-command projects'
 let s:command_project_list = '-command project_list'
 let s:command_project_by_resource = '-command project_by_resource -f "<file>"'
@@ -372,6 +373,24 @@ function! eclim#project#util#ProjectRefresh(args, ...)
   endif
 endfunction " }}}
 
+" ProjectBuild([project]) {{{
+" Build the current or requested project.
+function! eclim#project#util#ProjectBuild(...)
+  let project = a:0 > 0 ? a:1 : ''
+
+  if project == ''
+    if !eclim#project#util#IsCurrentFileInProject()
+      return
+    endif
+    let project = eclim#project#util#GetCurrentProjectName()
+  endif
+
+  call eclim#util#Echo("Building project '" . project . "'...")
+  let command = substitute(s:command_build, '<project>', project, '')
+  let port = eclim#project#util#GetProjectPort(project)
+  call eclim#util#Echo(eclim#ExecuteEclim(command, port))
+endfunction " }}}
+
 " ProjectInfo(project) {{{
 " Echos info for the current or supplied project.
 function! eclim#project#util#ProjectInfo(project)
@@ -656,12 +675,20 @@ function! eclim#project#util#ProjectGrep(command, args)
   let bufnum = bufnr('%')
   let project_dir = eclim#project#util#GetCurrentProjectRoot()
   let cwd = getcwd()
+  let acd = &autochdir
+  set noautochdir
 "  let save_opt = &eventignore
 "  set eventignore=all
   try
     silent exec 'lcd ' . escape(project_dir, ' ')
-    silent! exec a:command . ' ' . a:args
+    silent exec a:command . ' ' . a:args
+  catch /E480/
+    " no results found
+  catch /.*/
+    call eclim#util#EchoError(v:exception)
+    return
   finally
+    let &autochdir = acd
 "    let &eventignore = save_opt
     silent exec 'lcd ' . escape(cwd, ' ')
     " force quickfix / location list signs to update.
@@ -734,7 +761,7 @@ function! eclim#project#util#Todo()
   let path = expand('%:p')
   silent! exec 'lvimgrep /' . g:EclimTodoSearchPattern . '/gj ' . path
   if !empty(getloclist(0))
-    lopen
+    exec 'lopen ' . g:EclimLocationListHeight
   else
     call eclim#util#Echo('No Results found')
   endif
@@ -757,7 +784,7 @@ function! eclim#project#util#ProjectTodo()
     endfor
 
     if !empty(getloclist(0))
-      lopen
+      exec 'lopen ' . g:EclimLocationListHeight
     else
       call eclim#util#Echo('No Results found')
     endif
@@ -801,6 +828,9 @@ endfunction " }}}
 function! eclim#project#util#GetProjectRelativeFilePath(...)
   let file = a:0 == 0 ? expand('%:p') : a:1
   let project = eclim#project#util#GetProject(file)
+  if !len(project)
+    return ''
+  endif
 
   let file = substitute(fnamemodify(file, ':p'), '\', '/', 'g')
   let pattern = '\(/\|$\)'

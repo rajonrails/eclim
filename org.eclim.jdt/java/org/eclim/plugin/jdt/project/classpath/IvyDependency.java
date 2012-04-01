@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005 - 2009  Eric Van Dewoestine
+ * Copyright (C) 2005 - 2012  Eric Van Dewoestine
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,13 +27,12 @@ import org.eclipse.core.runtime.IPath;
 public class IvyDependency
   extends Dependency
 {
-  private static final String SEPARATOR = "/";
   private static final String JARS = "jars";
 
   /**
    * @see Dependency#Dependency(String,String,String,IPath)
    */
-  public IvyDependency (String org, String name, String version, IPath path)
+  public IvyDependency(String org, String name, String version, IPath path)
   {
     super(org, name, version, path);
   }

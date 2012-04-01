@@ -1,4 +1,4 @@
-.. Copyright (C) 2005 - 2011  Eric Van Dewoestine
+.. Copyright (C) 2005 - 2012  Eric Van Dewoestine
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -167,6 +167,12 @@ Vim's command line completion to complete the project name.
 
   Refreshes all projects.
 
+.. _\:ProjectBuild:
+
+- **:ProjectBuild** [<project>]
+
+  Builds the current or supplied project.
+
 .. _\:ProjectInfo:
 
 - **:ProjectInfo** [<project>]
@@ -227,12 +233,14 @@ Vim's command line completion to complete the project name.
 
 .. _\:ProjectProblems:
 
-- **:ProjectProblems** [<project>]
+- **:ProjectProblems[!]** [<project>]
   Populates vim's quickfix with a list of all eclipse build errors and warnings
   for the current, or specific project, and all related projects.  Very
   similar to eclipse's "Problems" view.  By default, if the current quickfix
   list represents a problems list, then as you save source files this list will
   be updated accordingly.
+
+  Appending '!' limits the problem results to just errors.
 
   .. note::
 
@@ -331,6 +339,7 @@ Vim's command line completion to complete the project name.
   - **F** -
     Prompts you for a new or existing filename to open, pre-filled with the
     directory path in the tree where this mapping was executed.
+  - **Y** - Yanks the path of the current file/directory to your clipboard.
   - **\?** - View the help buffer
 
   **Configuration**

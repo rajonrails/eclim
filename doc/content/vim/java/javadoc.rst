@@ -1,4 +1,4 @@
-.. Copyright (C) 2005 - 2009  Eric Van Dewoestine
+.. Copyright (C) 2005 - 2012  Eric Van Dewoestine
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -90,7 +90,7 @@ Vim Variables
 
 .. _g\:EclimJavaDocSearchSingleResult:
 
-- **g:EclimJavaDocSearchSingleResult** -
+- **g:EclimJavaDocSearchSingleResult** (Default: 'open') -
   Determines what action to take when only a singe result is found.
 
   Possible values include\:
@@ -98,6 +98,9 @@ Vim Variables
   - 'open' - open the result in a browser.
   - 'lopen' - open the temp window to display the result.
 
+- **g:EclimLocationListHeight** (Default: 10) -
+  Sets the height in lines of the location list window when eclim opens it to
+  display search results.
 
 .. _\:Javadoc:
 

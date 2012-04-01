@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005 - 2011  Eric Van Dewoestine
+ * Copyright (C) 2005 - 2012  Eric Van Dewoestine
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,8 @@ ant.property(file: 'ant/build.properties')
 ant.defaultexcludes(add: '**/*.swp')
 ant.defaultexcludes(add: '**/*.bak')
 
+gitAvailable = getGitAvailable()
+
 eclipseHome = binding.getVariable(getEclipseHomeProp())
 if (eclipseHome == '' || eclipseHome == '${env.ECLIM_ECLIPSE_HOME}'){
   ant.echo('''
@@ -41,6 +43,7 @@ if (eclipseHome == '' || eclipseHome == '${env.ECLIM_ECLIPSE_HOME}'){
   ant.fail(message: 'missing required property (see above)')
 }else{
   ant.property(name: 'eclipse', value: eclipseHome)
+  ant.property(name: 'eclipse.local', value: eclipseHome)
   ant.echo('$${eclipse}: ${eclipse}')
 }
 
@@ -48,7 +51,13 @@ pluginNames = initPlugins()
 
 target(name: 'init'){
   File dotversion = new File("${basedir}/.version")
-  if (dotversion.exists()){ // only used by source distribution (tar.gz)
+  if (!gitAvailable && !dotversion.exists()){
+    fail('''
+      Abort:
+      You must build eclim from a git checkout or a .version file
+      must exist at the eclim root containing the eclim version number.
+    ''')
+  }else if (dotversion.exists()){ // only used by source distribution (tar.gz)
     version = dotversion.getText().trim()
   }else{
     // set eclim version based on current repos state (most recent tag w/
@@ -61,7 +70,7 @@ target(name: 'init'){
   property(name: 'eclim.version', value: version)
   echo('eclim.version: ${eclim.version}')
 
-  property(name: 'eclim.plugins', value: '${eclipse}/plugins')
+  property(name: 'eclim.plugins', value: '${eclipse.local}/plugins')
   property(name: 'eclim.home', value: '${eclim.plugins}/org.eclim_${eclim.version}')
 
   // set location of vim files if not already set
@@ -196,22 +205,24 @@ target(name: 'deploy.eclipse'){
           includes: 'eclimd.bat,eclimd.cmd')
     }
   }else{
+    replace(file: '${eclim.plugins}/org.eclim_${eclim.version}/bin/eclimd',
+        token: '#$${eclipse.home}', value: 'ECLIM_ECLIPSE_HOME="${eclipse}"')
     chmod(dir: '${eclim.plugins}/org.eclim_${eclim.version}/bin',
         includes: '**/*', excludes: '*.sed', perm: 'ugo+x')
     // java symlink support sucks, especially if the link is broken
     exec(executable: 'rm'){
-      arg(line: '"${eclipse}/eclim" "${eclipse}/eclimd"')
+      arg(line: '"${eclipse.local}/eclim" "${eclipse.local}/eclimd"')
     }
-    exec(executable: 'ln', dir: '${eclipse}'){
+    exec(executable: 'ln', dir: '${eclipse.local}'){
       arg(line: '-s plugins/org.eclim_${eclim.version}/bin/eclim .')
     }
-    exec(executable: 'ln', dir: '${eclipse}'){
+    exec(executable: 'ln', dir: '${eclipse.local}'){
       arg(line: '-s plugins/org.eclim_${eclim.version}/bin/eclimd .')
     }
   }
 
   replace(file: '${eclim.plugins}/org.eclim_${eclim.version}/plugin.properties',
-      token: '$${vim.files}" value="${vim.files}')
+      token: '$${vim.files}', value: '${vim.files}')
   replace(dir: '${eclim.plugins}/org.eclim.vimplugin_${eclim.version}',
       includes: 'plugin.properties'){
     replacefilter(token: '$${eclim.gvim}', value: '${eclim.gvim}')
@@ -223,7 +234,7 @@ target(name: 'deploy.eclipse'){
   // eclipse won't need its hand held (could convert to using dropins, but I've
   // had issues with that as well in the past)
   replaceregexp(
-    file: '${eclipse}/configuration/org.eclipse.equinox.simpleconfigurator/bundles.info',
+    file: '${eclipse.local}/configuration/org.eclipse.equinox.simpleconfigurator/bundles.info',
     match: 'org.eclim(.[a-z]+)?([,_])\\d+\\.\\d+\\.\\d+(\\.\\d+-g[a-f0-9]+)?',
     replace: 'org.eclim\\1\\2${eclim.version}',
     flags: 'g')
@@ -254,7 +265,7 @@ target(name: 'deploy.vim'){
     replacefilter(token: '"$${vim.eclim.home}"',
         value: 'let g:EclimHome = \'${eclim.home}\'')
     replacefilter(token: '"$${vim.eclipse.home}"',
-        value: 'let g:EclimEclipseHome = \'${eclipse}\'')
+        value: 'let g:EclimEclipseHome = \'${eclipse.local}\'')
   }
 }
 
@@ -432,7 +443,7 @@ target(name: 'vimdocs'){
   mkdir(dir: 'build/doc/vimdocs')
 
   // generate site documention via sphinx
-  exec(executable: 'sphinx-build', failonerror: true, dir: '.'){
+  exec(executable: 'bin/sphinx', failonerror: true, dir: '.'){
     arg(line: '${sphinx.args} -b vimdoc doc/content build/doc/vimdocs')
   }
 
@@ -534,7 +545,7 @@ target(name: 'eclipse.docs'){
   eclipseHome = binding.getVariable('eclipse')
   new File("${eclipseHome}/plugins").eachFileMatch(~/.*\.doc\..*\.jar/){ file ->
     docDir = file.getName().replaceFirst('_.*', '')
-    unjar(src: file.getPath(), dest: "${eclipseHome}/docs/${docDir}")
+    unjar(src: file.getPath(), dest: '${eclipse.local}/docs/' + docDir)
   }
 }
 
@@ -542,7 +553,7 @@ target(name: 'eclipse.src'){
   eclipseHome = binding.getVariable('eclipse')
   new File("${eclipseHome}/plugins").eachFileRecurse(){ file ->
     if (file =~ /.*\.source_.*\.jar/){
-      unjar(src: file.getPath(), dest: '${eclipse}/src')
+      unjar(src: file.getPath(), dest: '${eclipse.local}/src')
     }
   }
 }
@@ -612,8 +623,28 @@ target(name: 'patch.revert.all'){
   }
 }
 
+def getGitAvailable(){
+  if (!new File("${basedir}/.git").exists()){
+    return false
+  }
+
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+    syspath = binding.getVariable('env.Path')
+    ant.available(file: 'git.cmd', filepath: syspath, property: 'git.available')
+    ant.available(file: 'git.exe', filepath: syspath, property: 'git.available')
+  }else{
+    syspath = binding.getVariable('env.PATH')
+    ant.available(file: 'git', filepath: syspath, property: 'git.available')
+  }
+  return hasVariable('git.available')
+}
+
 def getEclipseHomeProp(){
-  // try bransh specific eclipse home vars
+  if (!gitAvailable){
+    return 'eclipse.home'
+  }
+
+  // try branch specific eclipse home vars
   try {
     branch = execute('git', 'rev-parse --abbrev-ref HEAD')
     eclipseHomeProp = 'eclipse.home.' + branch
@@ -639,13 +670,34 @@ def initPlugins(){
   features = []
   exclude = ['org.eclim.feature', 'org.eclim.installer']
   defaults = ['org.eclim', 'org.eclim.core', 'org.eclim.vimplugin']
-
   defaults.each{ name -> pluginInclude(name)}
 
-  new File(getVariable('eclipse') + '/features').eachDir{ dir ->
-    features << dir.getName().replaceFirst(/_\d.*/, '')
+  // find all the available eclipse features
+  featurePaths = [new File(getVariable('eclipse') + '/features')]
+  dropins = new File(getVariable('eclipse') + '/dropins')
+  if (dropins.exists()){
+    dropins.eachDir{ dropin ->
+      featurePaths << new File(dropin.getAbsolutePath() + '/eclipse/features')
+    }
+  }
+  if (getVariable('eclipse') != getVariable('eclipse.local')){
+    featurePaths << new File(getVariable('eclipse.local') + '/features')
+  }
+  featurePaths.each { path ->
+    ant.echo("Feature path: ${path} exists: ${path.exists()}", level: 'debug')
+    if (path.exists()){
+      path.eachFile{ file ->
+        name = file.getName()
+        if (file.isDirectory() || name.endsWith('.jar')){
+          name = name.replaceFirst(/_\d.*/, '')
+          ant.echo("  feature: ${name}", level: 'debug')
+          features << name
+        }
+      }
+    }
   }
 
+  // enable eclim plugins whose required features have been found
   new File('.').eachDirMatch(~/org\.eclim\.\w*/){ dir ->
     name = dir.getName()
     if (!exclude.contains(name) && !defaults.contains(name)){
@@ -894,7 +946,12 @@ def execute(exe, args, failonerror=true, output=null, append=false){
   file.delete()
   name = file.name
 
-  values = [outputproperty: name, failonerror: failonerror, append: append]
+  values = [
+    outputproperty: name,
+    failonerror: failonerror,
+    append: append,
+    logError: true,
+  ]
   values['executable'] = Os.isFamily(Os.FAMILY_WINDOWS) ? 'cmd.exe' : exe
   if (output != null){
     values['output'] = output

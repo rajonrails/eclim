@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005 - 2011  Eric Van Dewoestine
+ * Copyright (C) 2005 - 2012  Eric Van Dewoestine
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,8 +88,14 @@ public class VimStep
   private static final Logger logger = LoggerFactory.getLogger(VimStep.class);
 
   private static final String[] WINDOWS_VIMS = {
+    "vim.bat",
+    "gvim.bat",
     "vim.exe",
     "gvim.exe",
+    "C:/Program Files (x86)/Vim/vim73/vim.exe",
+    "C:/Program Files (x86)/Vim/vim73/gvim.exe",
+    "C:/Program Files (x86)/Vim/vim72/vim.exe",
+    "C:/Program Files (x86)/Vim/vim72/gvim.exe",
     "C:/Program Files/Vim/vim73/vim.exe",
     "C:/Program Files/Vim/vim73/gvim.exe",
     "C:/Program Files/Vim/vim72/vim.exe",
@@ -101,7 +107,8 @@ public class VimStep
   };
 
   private static final String[] WINDOWS_GVIMS = {
-    "gvim.exe",
+    "C:/Program Files (x86)/Vim/vim73/gvim.exe",
+    "C:/Program Files (x86)/Vim/vim72/gvim.exe",
     "C:/Program Files/Vim/vim73/gvim.exe",
     "C:/Program Files/Vim/vim72/gvim.exe",
     "C:/Program Files/Vim/vim71/gvim.exe",

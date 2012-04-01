@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005 - 2011  Eric Van Dewoestine
+ * Copyright (C) 2005 - 2012  Eric Van Dewoestine
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -265,7 +265,7 @@ public class SearchCommand
       // occurs with a referenced project as a lib with no source and class
       // files that are not archived in that project
       if (resource != null && resource.getType() == IResource.FILE){
-        file = resource.getRawLocation().toOSString();
+        file = resource.getLocation().toOSString();
 
       }else{
         IPackageFragmentRoot root = (IPackageFragmentRoot)
@@ -275,7 +275,7 @@ public class SearchCommand
           if (resource.getType() == IResource.PROJECT){
             archive = ProjectUtils.getPath((IProject)resource);
           }else{
-            archive = resource.getRawLocation().toOSString();
+            archive = resource.getLocation().toOSString();
           }
         }else{
           archive = root.getPath().toOSString();
@@ -350,13 +350,9 @@ public class SearchCommand
   {
     Class<?> theClass = element.getClass();
 
-    // type declaration
-    if(theClass.equals(org.eclipse.jdt.internal.core.SourceType.class)){
-      return IJavaSearchConstants.IMPLEMENTORS;
-    }
-
-    // field / method declaration
-    if (theClass.equals(org.eclipse.jdt.internal.core.SourceField.class) ||
+    // type / field / method declaration
+    if (theClass.equals(org.eclipse.jdt.internal.core.SourceType.class) ||
+        theClass.equals(org.eclipse.jdt.internal.core.SourceField.class) ||
         theClass.equals(org.eclipse.jdt.internal.core.SourceMethod.class))
     {
       return IJavaSearchConstants.ALL_OCCURRENCES;

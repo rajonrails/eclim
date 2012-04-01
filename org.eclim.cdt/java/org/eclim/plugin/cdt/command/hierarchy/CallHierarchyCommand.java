@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005 - 2011  Eric Van Dewoestine
+ * Copyright (C) 2005 - 2012  Eric Van Dewoestine
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,6 +55,7 @@ import org.eclipse.cdt.core.model.ICElement;
 import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.core.model.IFunction;
 import org.eclipse.cdt.core.model.IFunctionDeclaration;
+import org.eclipse.cdt.core.model.IProblemRequestor;
 import org.eclipse.cdt.core.model.ITranslationUnit;
 import org.eclipse.cdt.core.model.IWorkingCopy;
 
@@ -114,7 +115,7 @@ public class CallHierarchyCommand
 
     CUIPlugin cuiPlugin = CUIPlugin.getDefault();
     ITranslationUnit src = CUtils.getTranslationUnit(cproject, file);
-    src = src.getSharedWorkingCopy(null, cuiPlugin.getBufferFactory());
+    src = src.getSharedWorkingCopy(null, (IProblemRequestor)null);
 
     IEditorInput input = new FileEditorInput((IFile)src.getResource());
 
@@ -244,7 +245,7 @@ public class CallHierarchyCommand
       IResource resource = element.getResource();
       if (resource != null){
         String file = element.getResource()
-          .getRawLocation().toOSString().replace('\\', '/');
+          .getLocation().toOSString().replace('\\', '/');
         result.put("position",
             Position.fromOffset(file, null, name.getNodeOffset(), 0));
       }
@@ -272,7 +273,7 @@ public class CallHierarchyCommand
       this.name = name;
       this.element = element;
       this.location =
-        element.getResource().getRawLocation().toOSString() +
+        element.getResource().getLocation().toOSString() +
         element.getElementName();
     }
 

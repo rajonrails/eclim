@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005 - 2011  Eric Van Dewoestine
+ * Copyright (C) 2005 - 2012  Eric Van Dewoestine
  *
  * Portions of this class that are copied from the eclipse source are the
  * copyright (c) of IBM Corporation and others, and released under the Eclipse
@@ -61,13 +61,12 @@ import org.osgi.framework.ServiceReference;
  *
  * @author Eric Van Dewoestine
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class Application
   extends org.eclipse.equinox.internal.p2.director.app.DirectorApplication
 {
   private static final Integer EXIT_ERROR = new Integer(13);
 
-  @SuppressWarnings("rawtypes")
   private Object invokePrivate(String methodName, Class[] params, Object[] args)
     throws Exception
   {
@@ -172,7 +171,7 @@ public class Application
         invokePrivate("deeplyPrint",
             new Class[]{IStatus.class, PrintStream.class, Integer.TYPE},
             new Object[]{e.getStatus(), System.err, 0});
-        invokePrivate("deeplyPrint",
+        invokePrivate("logFailure",
             new Class[]{IStatus.class},
             new Object[]{e.getStatus()});
 

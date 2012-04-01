@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005 - 2011  Eric Van Dewoestine
+ * Copyright (C) 2005 - 2012  Eric Van Dewoestine
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@ package org.eclim.plugin.cdt.project;
 
 import java.io.FileInputStream;
 
+import java.util.Arrays;
 import java.util.List;
 
 import java.util.regex.Matcher;
@@ -60,6 +61,7 @@ import org.eclipse.cdt.core.settings.model.util.PathEntryTranslator;
 import org.eclipse.cdt.managedbuilder.buildproperties.IBuildPropertyManager;
 import org.eclipse.cdt.managedbuilder.buildproperties.IBuildPropertyValue;
 
+import org.eclipse.cdt.managedbuilder.core.BuildListComparator;
 import org.eclipse.cdt.managedbuilder.core.IBuilder;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IToolChain;
@@ -74,8 +76,6 @@ import org.eclipse.cdt.managedbuilder.internal.dataprovider.ConfigurationDataPro
 
 import org.eclipse.cdt.managedbuilder.ui.wizards.CfgHolder;
 import org.eclipse.cdt.managedbuilder.ui.wizards.MBSWizardHandler;
-
-import org.eclipse.cdt.ui.newui.UIMessages;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -120,6 +120,7 @@ public class CProjectManager
       ManagedBuildManager.getBuildPropertyManager();
     final IBuildPropertyValue[] vs = buildManager
       .getPropertyType(MBSWizardHandler.ARTIFACT).getSupportedValues();
+    Arrays.sort(vs, BuildListComparator.getInstance());
 
     MBSWizardHandler handler = null;
 
@@ -127,33 +128,36 @@ public class CProjectManager
       final IToolChain[] toolChains = ManagedBuildManager
         .getExtensionsToolChains(MBSWizardHandler.ARTIFACT, value.getId(), false);
       if (toolChains != null && toolChains.length > 0){
-        IToolChain toolchain = null;
+        toolchainLoop:
         for (IToolChain tc : toolChains){
           if (!tc.isAbstract() &&
               !tc.isSystemObject() &&
               tc.isSupported() &&
               ManagedBuildManager.isPlatformOk(tc))
           {
-            toolchain = tc;
-            break;
+            handler = new LocalMBSWizardHandler(
+                value, EclimPlugin.getShell(), null, tc);
+
+            // stop once we've found a toolchain w/ a config
+            CfgHolder[] cfgs = handler.getCfgItems(false);
+            if (cfgs != null &&
+                cfgs.length > 0 &&
+                cfgs[0].getConfiguration() != null)
+            {
+              break toolchainLoop;
+            }
           }
         }
 
-        // handle case where no toolchain was found, like on windows when
-        // eclipse can't find cygwin or mingw.
-        if (toolchain == null){
-          IToolChain ntc = ManagedBuildManager
-            .getExtensionToolChain(ConfigurationDataProvider.PREF_TC_ID);
-          handler = new LocalSTDWizardHandler(
-              value, EclimPlugin.getShell(), null, ntc);
-
-        // normal case, suitable toolchain found.
-        }else{
-          handler = new LocalMBSWizardHandler(
-              value, EclimPlugin.getShell(), null, toolchain);
-        }
+        // handle case where no toolchain w/ a config was found, like on
+        // windows when eclipse can't find cygwin or mingw.
+        IToolChain ntc = ManagedBuildManager
+          .getExtensionToolChain(ConfigurationDataProvider.PREF_TC_ID);
+        handler = new LocalSTDWizardHandler(
+            value, EclimPlugin.getShell(), null, ntc);
       }
     }
+
     try{
       handler.createProject(project, true, true, new NullProgressMonitor());
       ICProject cproject = CUtils.getCProject(project);
@@ -399,6 +403,7 @@ public class CProjectManager
               (ToolChain)cfgs[i].getToolChain(),
               ManagedBuildManager.calculateChildId(s, null),
               cfgs[i].getName());
+          cfgs[i].setConfiguration(cfg);
           IBuilder bld = cfg.getEditableBuilder();
           if (bld != null) {
             if(bld.isInternalBuilder()){
@@ -413,11 +418,8 @@ public class CProjectManager
               bld.setBuildPath(null);
             }
             bld.setManagedBuildOn(false);
-          } else {
-            System.out.println(
-                UIMessages.getString("StdProjectTypeHandler.3")); //$NON-NLS-1$
           }
-          cfg.setArtifactName(removeSpaces(project.getName()));
+          cfg.setArtifactName(mProj.getDefaultArtifactName());
           CConfigurationData data = cfg.getConfigurationData();
           des.createConfiguration(ManagedBuildManager.CFG_DATA_PROVIDER_ID, data);
           monitor.worked(work);
