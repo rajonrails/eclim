@@ -5,7 +5,7 @@
 "
 " License:
 "
-" Copyright (C) 2011  Eric Van Dewoestine
+" Copyright (C) 2011 - 2012  Eric Van Dewoestine
 "
 " This program is free software: you can redistribute it and/or modify
 " it under the terms of the GNU General Public License as published by
@@ -37,10 +37,6 @@ function! TestCodeComplete()
   let start = eclim#scala#complete#CodeComplete(1, '')
   call vunit#AssertEquals(9, start, 'Wrong starting column.')
 
-  call cursor(14, 11)
-  let start = eclim#scala#complete#CodeComplete(1, '')
-  call vunit#AssertEquals(9, start, 'Wrong starting column.')
-
   call cursor(9, 11)
   let results = eclim#scala#complete#CodeComplete(0, '')
   call vunit#PeekRedir()
@@ -51,6 +47,10 @@ function! TestCodeComplete()
     \ 'Results does not contain scalaMethod2')
   call vunit#AssertEquals(results[2].word, 'scalaMethod3(',
     \ 'Results does not contain scalaMethod3')
+
+  call cursor(14, 11)
+  let start = eclim#scala#complete#CodeComplete(1, '')
+  call vunit#AssertEquals(9, start, 'Wrong starting column.')
 
   call cursor(14, 11)
   let results = eclim#scala#complete#CodeComplete(0, '')
